@@ -7,7 +7,7 @@ using namespace std;
 #define pii pair<int, int>
 #define int long long
 
-mt19937 rnd(20636117);
+mt19937 rnd(time(0));
 int MOD = 1e9 + 7;
 
 void print(vvi& v) {
@@ -60,14 +60,18 @@ pair<int, int> find_player(map<pii, int>& f) {
     }
 }
 
-bool possible(vector<vector<int>> f) {
+int finish_dist(vector<vector<int>> f) {
     set<vector<vector<int>>> was;
-    vector<vector<vector<int>>> que;
-    que.push_back(f);
-    for (int i = 0; i < que.size(); ++i) {
-        vector<vector<int>> v = que[i];
-        if (!has_finish(v)) return 1;
-        if (was.count(v)) continue;
+    priority_queue<pair<int, vvi>> que;
+    que.emplace(0, f);
+    while (!que.empty()) {
+        auto [d, v] = que.top();
+        d *= -1;
+        que.pop();
+        if (!has_finish(v)) return d;
+        if (was.count(v)) {
+            continue;
+        }
         was.insert(v);
         int n = v.size(), m = v[0].size();
         auto [x, y] = find_player(v);
@@ -105,7 +109,7 @@ bool possible(vector<vector<int>> f) {
             if (!would_die && yp + 1 != y) {
                 u[x][yp + 1] = u[x][y];
                 u[x][y] = 0;
-                que.push_back(u);
+                que.emplace(-d-1, u);
             }
         }
         { // go down
@@ -142,7 +146,7 @@ bool possible(vector<vector<int>> f) {
             if (!would_die && xp - 1 != x) {
                 u[xp - 1][y] = u[x][y];
                 u[x][y] = 0;
-                que.push_back(u);
+                que.emplace(-d-1, u);
             }
         }
         { // go right
@@ -179,7 +183,7 @@ bool possible(vector<vector<int>> f) {
             if (!would_die && yp - 1 != y) {
                 u[x][yp - 1] = u[x][y];
                 u[x][y] = 0;
-                que.push_back(u);
+                que.emplace(-d-1, u);
             }
         }
         { // go up
@@ -216,7 +220,7 @@ bool possible(vector<vector<int>> f) {
             if (!would_die && xp + 1 != x) {
                 u[xp + 1][y] = u[x][y];
                 u[x][y] = 0;
-                que.push_back(u);
+                que.emplace(-d-1, u);
             }
         }
     }
@@ -264,35 +268,52 @@ void add(map<pii, int>& states, pii start, int val) {
     }
 }
 
-bool squeeze_x(vvi& f, int x, int cnt) {
+bool squeeze_x(vvi& f, int x, int xx, int cnt) {
     vvi t;
+    if (xx < x) swap(x, xx);
     for (int i = 0; i < f.size(); ++i) {
-        if (i != x + 1) {
+        if (i != xx) {
             t.push_back(f[i]);
         }
         if (i == x) {
             for (int j = 0; j < f[x].size(); ++j) {
-                if (f[i][j] || f[i + 1][j]) return 0;
-                t[i][j] += f[i + 1][j];
+                if (f[x][j] && f[xx][j]) return 0;
+                t[x][j] += f[xx][j];
             }
         }
     }
-    if (possible(t) && possible(t) <= cnt) {
+    int dist = finish_dist(t);
+    if (dist == cnt) {
         f = t;
         return 1;
     }
     return 0;
 }
 
-//bool squeeze_y(vvi& f, int y, int cnt) {
-//    vvi t;
-//    for (int i = 0; i < f[0].size(); ++i) {
-//        if (i != y + 1) {
-//            vi cur;
-//
-//        }
-//    }
-//}
+bool squeeze_y(vvi& f, int y, int yy, int cnt) {
+    vvi t(f.size());
+    if (yy < y) swap(y, yy);
+    for (int j = 0; j < f[0].size(); ++j) {
+        if (j != yy) {
+            for (int i = 0; i < f.size(); ++i) {
+                t[i].push_back(f[i][j]);
+            }
+        }
+        if (j == y) {
+            for (int i = 0; i < f.size(); ++i) {
+                if (f[i][y] && f[i][yy]) return 0;
+                t[i].back() += f[i][yy];
+            }
+        }
+    }
+
+    int dist = finish_dist(t);
+    if (dist == cnt) {
+        f = t;
+        return 1;
+    }
+    return 0;
+}
 
 vvi compact(map<pii, int>& states) {
     vi x, y;
@@ -322,11 +343,16 @@ vvi compact(map<pii, int>& states) {
         int val = s.second;
         a[xx][yy] = val;
     }
+    int real_dist = finish_dist(a);
     bool ok = 1;
-    while (ok) {
+    int wait = 2;
+    while (ok && wait--) {
         ok = 0;
         for (int i = 1; i + 2 < a.size(); ++i) {
-            ok |= squeeze_x(a, i, 100);
+            ok |= squeeze_x(a, i, i + 1, real_dist);
+        }
+        for (int i = 1; i + 2 < a[0].size(); ++i) {
+            ok |= squeeze_y(a, i, i + 1, real_dist);
         }
     }
     return a;
@@ -369,7 +395,7 @@ void create(map<pii, int>& states, int depth, pii start, bool dead) {
         }
         return;
     }
-    vi probs = {1000, 500, 200}; // simple, double, add
+    vi probs = {800, 500, 200, dead * 200}; // simple, double, add
     int sum = 0;
     for (auto p : probs) sum += p;
     int val = rnd() % sum;
@@ -382,9 +408,6 @@ void create(map<pii, int>& states, int depth, pii start, bool dead) {
             break;
         }
     }
-
-//    auto a = compact(states);
-//    print(a);
 
     if (way == 0) {
         if (coord == 0) {
@@ -422,6 +445,8 @@ void create(map<pii, int>& states, int depth, pii start, bool dead) {
     } else if (way == 2) {
 //        add(states, {x, y}, 10);
         create(states, depth, {x, y}, dead);
+    } else if (way == 3) {
+        create(states, depth - 1, {x, y}, dead);
     }
 }
 
@@ -438,9 +463,8 @@ signed main() {
     states[{MOD / 2, MOD / 2}] = 1;
     states[{MOD / 2, MOD / 2 - 1}] = 5;
 //    add(states, {0, 0}, 10);
-
-    create(states, 6, {MOD / 2, MOD / 2}, 0);
+    create(states, 8, {MOD / 2, MOD / 2}, 0);
     auto a = compact(states);
     print(a);
-    cout << possible(a) << '\n';
+    cout << finish_dist(a) << '\n';
 }
