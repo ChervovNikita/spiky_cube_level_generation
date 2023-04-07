@@ -7,7 +7,7 @@ using namespace std;
 #define pii pair<int, int>
 #define int long long
 
-mt19937 rnd(time(0));
+mt19937 rnd(chrono::steady_clock::now().time_since_epoch().count());
 int MOD = 1e9 + 7;
 
 void print(vvi& v) {
@@ -463,8 +463,17 @@ signed main() {
     states[{MOD / 2, MOD / 2}] = 1;
     states[{MOD / 2, MOD / 2 - 1}] = 5;
 //    add(states, {0, 0}, 10);
-    create(states, 8, {MOD / 2, MOD / 2}, 0);
+    create(states, 5, {MOD / 2, MOD / 2}, 0);
     auto a = compact(states);
-    print(a);
-    cout << finish_dist(a) << '\n';
+//    print(a);
+//    cout << finish_dist(a) << '\n';
+    int n = a.size();
+    int m = a[0].size();
+    cout << n << ' ' << m << '\n';
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            cout << a[i][j] << ' ';
+        }
+        cout << '\n';
+    }
 }

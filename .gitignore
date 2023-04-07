@@ -3,3 +3,5 @@ no.txt
 yes.txt
 .idea
 cmake-build-debug
+test_gen
+*.zip
