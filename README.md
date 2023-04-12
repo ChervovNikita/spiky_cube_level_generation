@@ -1,3 +1,10 @@
+Пример запуска
+```console
+g++ main.cpp -o test_gen
+mkdir levels
+python create.py
+```
+
 0 - пустое поле
 
 1, 2, 3, 4 - игрок и поворот шипа (вверх и по-часовой)
