@@ -8,7 +8,8 @@ using namespace std;
 #define int long long
 
 mt19937 rnd(chrono::steady_clock::now().time_since_epoch().count());
-int MOD = 1e9 + 7;
+const int MOD = 1e9 + 7;
+const int FIELD_SHAPE = 15;
 
 void print(vvi& v) {
     int n = v.size(), m = v[0].size();
@@ -33,7 +34,6 @@ void print(vvi& v) {
         cout << endl;
     }
 }
-
 bool has_finish(vector<vector<int>>& f) {
     int n = f.size(), m = f[0].size();
     for (int i = 0; i < n; ++i) {
@@ -43,7 +43,6 @@ bool has_finish(vector<vector<int>>& f) {
     }
     return 0;
 }
-
 pair<int, int> find_player(vector<vector<int>>& f) {
     int n = f.size(), m = f[0].size();
     for (int i = 0; i < n; ++i) {
@@ -451,29 +450,33 @@ void create(map<pii, int>& states, int depth, pii start, bool dead) {
 }
 
 signed main() {
-//    int n, m; cin >> n >> m;
-//    vector<vector<int>> a(n, vector<int>(m));
-//    for (int i = 0; i < n; ++i) {
-//        for (int j = 0; j < m; ++j) {
-//            cin >> a[i][j];
-//        }
-//    }
-//    cout << possible(a) << '\n';
-    map<pii, int> states;
-    states[{MOD / 2, MOD / 2}] = 1;
-    states[{MOD / 2, MOD / 2 - 1}] = 5;
-//    add(states, {0, 0}, 10);
-    create(states, 5, {MOD / 2, MOD / 2}, 0);
-    auto a = compact(states);
-//    print(a);
-//    cout << finish_dist(a) << '\n';
-    int n = a.size();
-    int m = a[0].size();
-    cout << n << ' ' << m << '\n';
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < m; ++j) {
-            cout << a[i][j] << ' ';
+    bool good_gen = false;
+    while (!good_gen) {
+        map<pii, int> states;
+        states[{MOD / 2, MOD / 2}] = 1;
+        states[{MOD / 2, MOD / 2 - 1}] = 5;
+        create(states, 5, {MOD / 2, MOD / 2}, 0);
+        auto a = compact(states);
+        int n = a.size();
+        int m = a[0].size();
+        if (n > FIELD_SHAPE - 2 || m > FIELD_SHAPE - 2) continue;
+        cout << n + 2 << ' ' << m + 2 << '\n';
+        for (int j = 0; j < m + 2; ++j) {
+            cout << "5 ";
         }
         cout << '\n';
+        for (int i = 0; i < n; ++i) {
+            cout << "5 ";
+            for (int j = 0; j < m; ++j) {
+                cout << a[i][j] << ' ';
+            }
+            cout << "5 ";
+            cout << '\n';
+        }
+        for (int j = 0; j < m + 2; ++j) {
+            cout << "5 ";
+        }
+        cout << '\n';
+        good_gen = true;
     }
 }
